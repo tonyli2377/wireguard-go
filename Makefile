@@ -1,8 +1,9 @@
 PREFIX ?= /usr
 DESTDIR ?=
 BINDIR ?= $(PREFIX)/bin
-export GOPATH ?= $(CURDIR)/.gopath
+export GOPATH := $(CURDIR)/.gopath
 export GO111MODULE := on
+GOFLAGS := -buildmode=pie -gcflags=all=-trimpath=$(GOPATH) -asmflags=all=-trimpath=$(GOPATH) -ldflags "-s -w -extldflags '$(LDFLAGS)'"
 
 all: generate-version-and-build
 
@@ -31,7 +32,7 @@ generate-version-and-build:
 	@$(MAKE) wireguard-go
 
 wireguard-go: $(wildcard *.go) $(wildcard */*.go)
-	go build -v -o "$@"
+	go build -v -o "$@" $(GOFLAGS)
 
 install: wireguard-go
 	@install -v -d "$(DESTDIR)$(BINDIR)" && install -v -m 0755 "$<" "$(DESTDIR)$(BINDIR)/wireguard-go"
