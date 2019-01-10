@@ -6,12 +6,14 @@
 package main
 
 import (
-	"git.zx2c4.com/wireguard-go/ratelimiter"
-	"git.zx2c4.com/wireguard-go/tun"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"git.zx2c4.com/wireguard-go/logger"
+	"git.zx2c4.com/wireguard-go/ratelimiter"
+	"git.zx2c4.com/wireguard-go/tun"
 )
 
 const (
@@ -22,7 +24,7 @@ const (
 type Device struct {
 	isUp     AtomicBool // device is (going) up
 	isClosed AtomicBool // device is closed? (acting as guard)
-	log      *Logger
+	log      *logger.Logger
 
 	// synchronized resources (locks acquired in order)
 
@@ -247,7 +249,7 @@ func (device *Device) SetPrivateKey(sk NoisePrivateKey) error {
 	return nil
 }
 
-func NewDevice(tunDevice tun.TUNDevice, logger *Logger) *Device {
+func NewDevice(tunDevice tun.TUNDevice, logger *logger.Logger) *Device {
 	device := new(Device)
 
 	device.isUp.Set(false)

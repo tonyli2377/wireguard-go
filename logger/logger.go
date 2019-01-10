@@ -3,7 +3,7 @@
  * Copyright (C) 2017-2019 WireGuard LLC. All Rights Reserved.
  */
 
-package main
+package logger
 
 import (
 	"io"
