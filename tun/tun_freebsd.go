@@ -206,17 +206,30 @@ func tunDestroy(name string) error {
 
 	defer unix.Close(fd)
 
-	// do ioctl call
+	// First we set down the interface (no ifr flags), to work around FreeBSD kernel bug.
+	func() {
+		var ifr [1024]byte
+		copy(ifr[:], name)
+		unix.Syscall(
+			unix.SYS_IOCTL,
+			uintptr(fd),
+			uintptr(unix.SIOCSIFFLAGS),
+			uintptr(unsafe.Pointer(&ifr[0])),
+		)
+	}()
 
-	var ifr [32]byte
-	copy(ifr[:], name)
-	_, _, errno := unix.Syscall(
-		unix.SYS_IOCTL,
-		uintptr(fd),
-		uintptr(unix.SIOCIFDESTROY),
-		uintptr(unsafe.Pointer(&ifr[0])),
-	)
-
+	// Only after can we then destroy the interface.
+	errno := func() syscall.Errno {
+		var ifr [32]byte
+		copy(ifr[:], name)
+		_, _, errno := unix.Syscall(
+			unix.SYS_IOCTL,
+			uintptr(fd),
+			uintptr(unix.SIOCIFDESTROY),
+			uintptr(unsafe.Pointer(&ifr[0])),
+		)
+		return errno
+	}()
 	if errno != 0 {
 		return fmt.Errorf("failed to destroy interface %s: %s", name, errno.Error())
 	}
